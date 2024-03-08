@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Button, Slider } from 'antd';
 import { FaBackward, FaForward, FaRegCirclePause, FaRegCirclePlay, FaRepeat, FaShuffle } from "react-icons/fa6";
+import { Player } from '@lottiefiles/react-lottie-player';
+import playingicon from "@/app/icons/lottieflow-multimedia-8-8-000000-easey.json";
 
 const ALBUM_IMAGES = [
   'https://www.escapistmagazine.com/wp-content/uploads/2023/03/how-old-are-the-ive-members-1.jpg?fit=1200%2C762',
@@ -180,6 +182,14 @@ const MusicPlayer = () => {
   const [shuffledSongs, setShuffledSongs] = useState<Song[]>([]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playingIconRef = useRef<Player | null>(null);
+
+  const playingIcon = <Player
+    loop
+    ref={playingIconRef}
+    src={playingicon}
+    style={{ height: '1.25rem', marginLeft: '0.5rem' }}
+  />
 
   useEffect(() => {
     const shuffleEngineInstance = new SongCollection(5);
@@ -225,8 +235,10 @@ const MusicPlayer = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.play();
+        playingIconRef.current?.play();
       } else {
         audioRef.current.pause();
+        playingIconRef.current?.pause();
       }
     }
   }, [isPlaying]);
@@ -362,8 +374,9 @@ const MusicPlayer = () => {
       </div>
 
       <div className="playlist">
-        <div style={{ backgroundColor: 'lightblue' }}>
+        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'lightblue' }}>
           <p>1. {currentTrack.title} </p>
+          {playingIcon}
         </div>
         {shuffle
           ? (shuffledSongs.map((track, index) => (
