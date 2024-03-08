@@ -153,7 +153,7 @@ class SongCollection implements ShuffleEngine {
       songsToShuffle.splice(randomIndex, 1); // Remove the selected song from the temporary array
     }
 
-    if(skippedSong) {
+    if (skippedSong) {
       shuffled.push(skippedSong);
     }
 
@@ -227,7 +227,7 @@ const MusicPlayer = () => {
     }
 
     setInitialMount(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack.url]);
 
 
@@ -247,7 +247,7 @@ const MusicPlayer = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const changeSong = (newIndex: number) => {} //! To be implemented
+  const changeSong = (newIndex: number) => { } //! To be implemented
 
   const nextTrack = () => {
     if (shuffle) {
@@ -268,7 +268,7 @@ const MusicPlayer = () => {
       ];
       if (originalOrderSongsParam) shuffleEngine?.resetQueue(originalOrderSongsParam);
       setCurrentTrack(originalOrderSongs[originalOrderSongs.length - 1]);
-    } else {} //! Shuffled PrevTrack feat To be implemented
+    } else { } //! Shuffled PrevTrack feat To be implemented
   }
 
   const handleVolumeChange = (value: number) => {
@@ -326,14 +326,14 @@ const MusicPlayer = () => {
         shuffleEngine.setSongs(TRACKS); // reset the queue to original order
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getIsShuffleOn()]);
 
   useEffect(() => { // When non-shuffle queue is reset, update the queue
     if (shuffleEngine) {
       setOriginalOrderSongs(shuffleEngine.getOriginalOrderSongs());
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getOriginalOrderSongs()]);
 
   return (
@@ -357,7 +357,7 @@ const MusicPlayer = () => {
       </div>
 
       <div className="controls">
-        <Button onClick={playPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay /> } type={isPlaying ? 'primary' : 'default'}>{isPlaying ? 'Pause' : 'Play'}</Button>
+        <Button onClick={playPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay />} type={isPlaying ? 'primary' : 'default'}>{isPlaying ? 'Pause' : 'Play'}</Button>
         <Button onClick={prevTrack} icon={<FaBackward />}>Previous</Button>
         <Button onClick={nextTrack} icon={<FaForward />}>Next</Button>
         <Button onClick={handleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'}>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</Button>
@@ -369,7 +369,6 @@ const MusicPlayer = () => {
           max={100}
           className="volumeSlider"
         />
-        {/* show volume */}
         <p>Volume: {volume}</p>
       </div>
 
