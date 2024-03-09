@@ -187,7 +187,6 @@ const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(15);
   const [shuffle, setShuffle] = useState(false);
-  const [loop, setLoop] = useState(false);
   const [currentAlbumImage, setCurrentAlbumImage] = useState(FALLBACK_ALBUM_IMAGES[0]);
   const [currentAlbumImageIndex, setCurrentAlbumImageIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -389,7 +388,6 @@ const MusicPlayer = () => {
         <Button onClick={prevTrack} icon={<FaBackward />}>Previous</Button>
         <Button onClick={nextTrack} icon={<FaForward />}>Next</Button>
         <Button onClick={handleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'}>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</Button>
-        <Button onClick={() => setLoop(!loop)} icon={<FaRepeat />} type={loop ? 'primary' : 'default'}>Loop</Button>
         <Slider
           value={volume}
           onChange={handleVolumeChange}
