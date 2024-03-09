@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Button, Slider } from 'antd';
+import { Button, Slider, Input, Tooltip } from 'antd';
 import { FaBackward, FaForward, FaRegCirclePause, FaRegCirclePlay, FaRepeat, FaShuffle } from "react-icons/fa6";
 import { Player } from '@lottiefiles/react-lottie-player';
 import playingicon from "@/app/icons/lottieflow-multimedia-8-8-000000-easey.json";
@@ -94,9 +94,17 @@ class SongCollection implements ShuffleEngine {
   }
 
   setSongs(songs: Song[]): void {
-    if (this.originalOrderSongs.length === 0) this.originalOrderSongs = songs.slice(1, songs.length);
-    if (this.isShuffleOn) {
-      this.songs = songs;
+    if (this.originalOrderSongs.length === 0) {
+      this.originalOrderSongs = songs.slice(1, songs.length);
+      if (this.originalOrderSongs.length < this.peekMax) {
+        while (this.originalOrderSongs.length < this.peekMax) {
+          this.originalOrderSongs = [...this.originalOrderSongs, ...songs];
+        }
+      }
+    } else if (this.isShuffleOn) {
+      while (this.songs.length < this.peekMax) {
+        this.songs = [...this.songs, ...this.getNewShuffledSongs(this.songs)];
+      }
     }
   }
 
@@ -127,7 +135,11 @@ class SongCollection implements ShuffleEngine {
   }
 
   peekQueue(): Song[] {
-    return this.songs.slice(0, this.peekMax);
+    if (this.isShuffleOn) {
+      return this.songs.slice(0, this.peekMax);
+    } else {
+      return this.originalOrderSongs.slice(0, this.peekMax);
+    }
   }
 
   private getNewShuffledSongs(remainingSongs: Song[]): Song[] {
@@ -136,15 +148,19 @@ class SongCollection implements ShuffleEngine {
 
     const shuffled: Song[] = [];
     const songsToShuffle = JSON.parse(JSON.stringify(TRACKS)); // Create a deep copy of the original TRACKS array
-    let lastSong = remainingSongs[remainingSongs.length - 1];
+    let lastSong;
     let skippedSong;
+
+    if (remainingSongs.length > 0) {
+      lastSong = remainingSongs[remainingSongs.length - 1];
+    }
 
     // Shuffle the songs until the last song in the remainingSongs array is not the same as the first song in the shuffled array
     while (songsToShuffle.length > 0) {
       const randomIndex = Math.floor(Math.random() * songsToShuffle.length);
       let songToAdd = songsToShuffle[randomIndex];
 
-      if (songToAdd.url !== lastSong.url) { // The first song of new queue cannot be currentTrack
+      if (lastSong && songToAdd.url !== lastSong.url) { // The first song of new queue cannot be currentTrack
         shuffled.push(songToAdd);
         lastSong = songToAdd;
       } else {
@@ -179,11 +195,14 @@ const MusicPlayer = () => {
   const [initialMount, setInitialMount] = useState(true);
   const [shuffleEngine, setShuffleEngine] = useState<ShuffleEngine | null>(null);
   const [originalOrderSongs, setOriginalOrderSongs] = useState<Song[]>([]);
-  const [shuffledSongs, setShuffledSongs] = useState<Song[]>([]);
+  const [peekMax, setPeekMax] = useState(5);
+  const [isPeekPlaylistNumberLoading, setIsPeekPlaylistNumberLoading] = useState(false);
+  const [peekMaxError, setPeekMaxError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playingIconRef = useRef<Player | null>(null);
 
+  const { Search } = Input;
   const playingIcon = <Player
     loop
     ref={playingIconRef}
@@ -192,10 +211,13 @@ const MusicPlayer = () => {
   />
 
   useEffect(() => {
-    const shuffleEngineInstance = new SongCollection(5);
+    const shuffleEngineInstance = new SongCollection(peekMax);
     shuffleEngineInstance.setSongs(JSON.parse(JSON.stringify(TRACKS)));
     setShuffleEngine(shuffleEngineInstance);
-  }, []);
+
+    if (!initialMount) setIsPeekPlaylistNumberLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peekMax]); // Update shuffle engine when peekMax changes
 
   useEffect(() => {
     const loadAlbumImage = () => {
@@ -252,7 +274,6 @@ const MusicPlayer = () => {
   const nextTrack = () => {
     if (shuffle) {
       setCurrentTrack(shuffleEngine?.getNextSong(currentTrack, TRACKS) || TRACKS[0]); //! FIX TRACKS[0]
-      setShuffledSongs(shuffleEngine?.peekQueue() || []);
     } else {
       const originalOrderSongsParam = originalOrderSongs.slice(1).concat(currentTrack);
       if (originalOrderSongsParam) shuffleEngine?.resetQueue(originalOrderSongsParam);
@@ -318,13 +339,7 @@ const MusicPlayer = () => {
 
   useEffect(() => { // When shuffle is toggled, update the queue
     if (shuffleEngine) {
-      if (shuffleEngine.getIsShuffleOn()) {
-        const tempShuffled = shuffleSongs(TRACKS);
-        shuffleEngine.setSongs(tempShuffled);
-        setShuffledSongs(shuffleEngine.peekQueue());
-      } else {
-        shuffleEngine.setSongs(TRACKS); // reset the queue to original order
-      }
+      shuffleEngine.setSongs(TRACKS);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getIsShuffleOn()]);
@@ -333,8 +348,21 @@ const MusicPlayer = () => {
     if (shuffleEngine) {
       setOriginalOrderSongs(shuffleEngine.getOriginalOrderSongs());
     }
+    if (!initialMount) setIsPeekPlaylistNumberLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getOriginalOrderSongs()]);
+
+  const handleSetPeekMax = (value: string) => {
+    setIsPeekPlaylistNumberLoading(true);
+    const newValue = parseInt(value, 10); // Parse input value to integer
+    if (!isNaN(newValue) && newValue >= 1 && newValue <= 100) { // Check if input is a valid number between 1 and 100
+      setPeekMax(newValue);
+      setPeekMaxError(null); // Clear error message when input is valid
+    } else {
+      setPeekMaxError('Please enter a number between 1 and 100.'); // Set error message when input is invalid
+      setIsPeekPlaylistNumberLoading(false);
+    }
+  };
 
   return (
     <div className="container">
@@ -370,6 +398,19 @@ const MusicPlayer = () => {
           className="volumeSlider"
         />
         <p>Volume: {volume}</p>
+        <Tooltip title={peekMaxError || 'Enter number of tracks to show in your playlist (between 1 to 100)'}>
+          <Search
+            type="number"
+            placeholder="5"
+            enterButton="Set Playlist Length"
+            loading={isPeekPlaylistNumberLoading}
+            onSearch={handleSetPeekMax}
+            onBlur={() => setPeekMaxError(null)}
+            min={1}
+            max={100}
+            status={peekMaxError ? 'error' : ''}
+          />
+        </Tooltip>
       </div>
 
       <div className="playlist">
@@ -377,17 +418,11 @@ const MusicPlayer = () => {
           <p>1. {currentTrack.title} </p>
           {playingIcon}
         </div>
-        {shuffle
-          ? (shuffledSongs.map((track, index) => (
-            <div key={index} onClick={() => changeSong(index)}>
-              <p>{index + 2}. {track.title}</p>
-            </div>
-          )))
-          : originalOrderSongs.map((track, index) => (
-            <div key={index} onClick={() => changeSong(index)}>
-              <p>{index + 2}. {track.title}</p>
-            </div>
-          ))}
+        {shuffleEngine?.peekQueue().map((track, index) => (
+          <div key={index} onClick={() => changeSong(index)}>
+            <p>{index + 2}. {track.title}</p>
+          </div>
+        ))}
       </div>
 
       <audio
