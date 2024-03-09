@@ -1,3 +1,13 @@
+# TODO
+
+1. Document
+2. Prev track button for shuffle monde
+3. Load all TRACK duration from mp3
+4. Work on category tag
+5. Work on Loop
+6. Implement select song onclick (skipToSong method)
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
