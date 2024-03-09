@@ -385,7 +385,7 @@ const MusicPlayer = () => {
 
       <div className="controls">
         <Button onClick={playPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay />} type={isPlaying ? 'primary' : 'default'}>{isPlaying ? 'Pause' : 'Play'}</Button>
-        <Button onClick={prevTrack} icon={<FaBackward />}>Previous</Button>
+        <Button disabled={shuffle} onClick={prevTrack} icon={<FaBackward />}>Previous</Button>
         <Button onClick={nextTrack} icon={<FaForward />}>Next</Button>
         <Button onClick={handleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'}>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</Button>
         <Slider
