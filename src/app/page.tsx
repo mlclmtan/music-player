@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Button, Slider, Input, Tooltip } from 'antd';
-import { FaBackward, FaForward, FaRegCirclePause, FaRegCirclePlay, FaRepeat, FaShuffle } from "react-icons/fa6";
+import { Button, Slider, Input, Tooltip, Divider, List, Typography, Skeleton } from 'antd';
+import { FaBackward, FaForward, FaRegCirclePause, FaRegCirclePlay, FaShuffle } from "react-icons/fa6";
 import { Player } from '@lottiefiles/react-lottie-player';
 import playingicon from "@/app/icons/lottieflow-multimedia-8-8-000000-easey.json";
 
@@ -201,7 +201,7 @@ const MusicPlayer = () => {
   const [originalOrderSongs, setOriginalOrderSongs] = useState<Song[]>([]);
   const [shuffledSongs, setShuffledSongs] = useState<Song[]>([]);
   const [peekMax, setPeekMax] = useState(5);
-  const [isPeekPlaylistNumberLoading, setIsPeekPlaylistNumberLoading] = useState(false);
+  const [isPeekPlaylistNumberLoading, setIsPeekPlaylistNumberLoading] = useState(true);
   const [peekMaxError, setPeekMaxError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -216,13 +216,17 @@ const MusicPlayer = () => {
   />
 
   useEffect(() => {
+    shuffleEngineInstance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peekMax]); // Update shuffle engine when peekMax changes
+
+  const shuffleEngineInstance = () => {
     const shuffleEngineInstance = new SongCollection(peekMax);
     shuffleEngineInstance.setSongs(JSON.parse(JSON.stringify(TRACKS)));
     setShuffleEngine(shuffleEngineInstance);
 
     if (!initialMount) setIsPeekPlaylistNumberLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [peekMax]); // Update shuffle engine when peekMax changes
+  }
 
   useEffect(() => {
     const loadAlbumImage = () => {
@@ -315,21 +319,6 @@ const MusicPlayer = () => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const shuffleSongs = (songs: Song[]) => {
-    let shuffled: Song[] = [];
-    let songsToShuffle = JSON.parse(JSON.stringify(songs))
-
-    while (songsToShuffle.length > 0) {
-      const randomIndex = Math.floor(Math.random() * songsToShuffle.length);
-      if (songsToShuffle[randomIndex].url !== currentTrack.url) { // * The first song of new queue cannot be currentTrack
-        shuffled.push(songsToShuffle[randomIndex]);
-      }
-      songsToShuffle.splice(randomIndex, 1);
-    }
-
-    return shuffled;
-  }
-
   const handleShuffle = () => {
     if (shuffleEngine) {
       if (shuffleEngine.getIsShuffleOn()) {
@@ -345,6 +334,7 @@ const MusicPlayer = () => {
   useEffect(() => { // When shuffle is toggled, update the queue
     if (shuffleEngine) {
       shuffleEngine.setSongs(TRACKS);
+      setShuffledSongs(shuffleEngine.peekQueue());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getIsShuffleOn()]);
@@ -353,6 +343,7 @@ const MusicPlayer = () => {
     if (shuffleEngine && shuffleEngine.getIsShuffleOn()) {
       setShuffledSongs(shuffleEngine.peekQueue());
     }
+    if (!initialMount && shuffleEngine?.getShuffledSongs().length) setIsPeekPlaylistNumberLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getShuffledSongs()]);
 
@@ -360,7 +351,7 @@ const MusicPlayer = () => {
     if (shuffleEngine) {
       setOriginalOrderSongs(shuffleEngine.getOriginalOrderSongs());
     }
-    if (!initialMount) setIsPeekPlaylistNumberLoading(false);
+    if (!initialMount && shuffleEngine?.getOriginalOrderSongs().length) setIsPeekPlaylistNumberLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getOriginalOrderSongs()]);
 
@@ -369,6 +360,7 @@ const MusicPlayer = () => {
     const newValue = parseInt(value, 10); // Parse input value to integer
     if (!isNaN(newValue) && newValue >= 1 && newValue <= 100) { // Check if input is a valid number between 1 and 100
       setPeekMax(newValue);
+      shuffleEngineInstance();
       setPeekMaxError(null); // Clear error message when input is valid
     } else {
       setPeekMaxError('Please enter a number between 1 and 100.'); // Set error message when input is invalid
@@ -378,67 +370,76 @@ const MusicPlayer = () => {
 
   return (
     <div className="container">
-      <div className={`albumContainer ${isPlaying ? 'animate' : ''}`}>
-        <Image
-          src={currentAlbumImage}
-          width={300}
-          height={300}
-          alt="Album Cover"
-          className="albumImage"
-          onError={() => setCurrentAlbumImage(FALLBACK_ALBUM_IMAGES[currentAlbumImageIndex % FALLBACK_ALBUM_IMAGES.length])}
-          priority={true}
-          style={{ objectFit: 'cover' }}
-        />
-      </div>
-
-      <div className="musicInfo">
-        <p>{currentTrack.title}</p>
-        <p>{formatTime(currentTime)} / {formatTime(duration)}</p>
-      </div>
-
-      <div className="controls">
-        <Button onClick={playPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay />} type={isPlaying ? 'primary' : 'default'}>{isPlaying ? 'Pause' : 'Play'}</Button>
-        <Button disabled={shuffle} onClick={prevTrack} icon={<FaBackward />}>Previous</Button>
-        <Button onClick={nextTrack} icon={<FaForward />}>Next</Button>
-        <Button onClick={handleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'}>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</Button>
-        <Slider
-          value={volume}
-          onChange={handleVolumeChange}
-          min={0}
-          max={100}
-          className="volumeSlider"
-        />
-        <p>Volume: {volume}</p>
-        <Tooltip title={peekMaxError || 'Enter number of tracks to show in your playlist (between 1 to 100)'}>
-          <Search
-            type="number"
-            placeholder="5"
-            enterButton="Set Playlist Length"
-            loading={isPeekPlaylistNumberLoading}
-            onSearch={handleSetPeekMax}
-            onBlur={() => setPeekMaxError(null)}
-            min={1}
-            max={100}
-            status={peekMaxError ? 'error' : ''}
+      <div className="left-column">
+        <div className={`albumContainer ${isPlaying ? 'animate' : ''}`}>
+          <Image
+            src={currentAlbumImage}
+            width={300}
+            height={300}
+            alt="Album Cover"
+            className="albumImage"
+            onError={() => setCurrentAlbumImage(FALLBACK_ALBUM_IMAGES[currentAlbumImageIndex % FALLBACK_ALBUM_IMAGES.length])}
+            priority={true}
+            style={{ objectFit: 'cover' }}
           />
-        </Tooltip>
+        </div>
+
+        <div className="musicInfo">
+          <p>{currentTrack.title}</p>
+          <p>{formatTime(currentTime)} / {formatTime(duration)}</p>
+        </div>
+
+        <div className="controls">
+          <div className="control-buttons">
+            <Button disabled={shuffle} onClick={prevTrack} icon={<FaBackward />}><span className='button-text'>Previous</span></Button>
+            <Button onClick={playPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay />} type={isPlaying ? 'primary' : 'default'}><span className='button-text'>{isPlaying ? 'Pause' : 'Play'}</span></Button>
+            <Button onClick={nextTrack} icon={<FaForward />}><span className='button-text'>Next</span></Button>
+            <Button onClick={handleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'}><span className='button-text'>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</span></Button>
+          </div>
+          <div className="volume-container">
+            <p className="volume-text">Volume: {volume}</p>
+            <Slider
+              className="volume-slider"
+              value={volume}
+              onChange={handleVolumeChange}
+              min={0}
+              max={100}
+            />
+          </div>
+          <Tooltip title={peekMaxError || 'Enter number of tracks to show in your playlist (between 1 to 100)'}>
+            <Search
+              type="number"
+              placeholder="5"
+              enterButton="Set Playlist Length"
+              loading={isPeekPlaylistNumberLoading}
+              onSearch={handleSetPeekMax}
+              onBlur={() => setPeekMaxError(null)}
+              min={1}
+              max={100}
+              status={peekMaxError ? 'error' : ''}
+            />
+          </Tooltip>
+        </div>
       </div>
 
-      <div className="playlist">
-        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'lightblue' }}>
-          <p>1. {currentTrack.title} </p>
-          {playingIcon}
+      <Divider className='divider'></Divider>
+
+      <div className="right-column">
+        <div className="playlist">
+          <Skeleton loading={isPeekPlaylistNumberLoading} active>
+            <List
+              header={<div>Playlist</div>}
+              bordered
+              dataSource={shuffle ? [currentTrack, ...shuffledSongs] : shuffleEngine ? [currentTrack, ...(shuffleEngine?.peekQueue())] : []}
+              renderItem={(item, index) => (
+                <List.Item key={item.url} onClick={() => changeSong(index)}>
+                  <Typography.Text className="playlist-item" mark={index === 0}>{index + 1}. {item.title}</Typography.Text>
+                  <Typography.Text>{index === 0 && playingIcon}</Typography.Text>
+                </List.Item>
+              )}
+            />
+          </Skeleton>
         </div>
-        {shuffle ?
-          shuffledSongs.map((track, index) => (
-            <div key={index} onClick={() => changeSong(index)}>
-              <p>{index + 2}. {track.title}</p>
-            </div>))
-          : shuffleEngine?.peekQueue().map((track, index) => (
-            <div key={index} onClick={() => changeSong(index)}>
-              <p>{index + 2}. {track.title}</p>
-            </div>
-          ))}
       </div>
 
       <audio
