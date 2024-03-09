@@ -71,6 +71,7 @@ interface ShuffleEngine {
   setShuffleOff(): void;
   resetQueue(songs: Song[]): void;
   getOriginalOrderSongs(): Song[];
+  getShuffledSongs(): Song[];
 }
 
 interface Song {
@@ -93,8 +94,12 @@ class SongCollection implements ShuffleEngine {
     return this.originalOrderSongs;
   }
 
+  getShuffledSongs(): Song[] {
+    return this.songs;
+  }
+
   setSongs(songs: Song[]): void {
-    if (this.originalOrderSongs.length === 0) {
+    if (!this.isShuffleOn && this.originalOrderSongs.length === 0) {
       this.originalOrderSongs = songs.slice(1, songs.length);
       if (this.originalOrderSongs.length < this.peekMax) {
         while (this.originalOrderSongs.length < this.peekMax) {
@@ -194,6 +199,7 @@ const MusicPlayer = () => {
   const [initialMount, setInitialMount] = useState(true);
   const [shuffleEngine, setShuffleEngine] = useState<ShuffleEngine | null>(null);
   const [originalOrderSongs, setOriginalOrderSongs] = useState<Song[]>([]);
+  const [shuffledSongs, setShuffledSongs] = useState<Song[]>([]);
   const [peekMax, setPeekMax] = useState(5);
   const [isPeekPlaylistNumberLoading, setIsPeekPlaylistNumberLoading] = useState(false);
   const [peekMaxError, setPeekMaxError] = useState<string | null>(null);
@@ -343,6 +349,13 @@ const MusicPlayer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getIsShuffleOn()]);
 
+  useEffect(() => {
+    if (shuffleEngine && shuffleEngine.getIsShuffleOn()) {
+      setShuffledSongs(shuffleEngine.peekQueue());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shuffleEngine?.getShuffledSongs()]);
+
   useEffect(() => { // When non-shuffle queue is reset, update the queue
     if (shuffleEngine) {
       setOriginalOrderSongs(shuffleEngine.getOriginalOrderSongs());
@@ -416,11 +429,16 @@ const MusicPlayer = () => {
           <p>1. {currentTrack.title} </p>
           {playingIcon}
         </div>
-        {shuffleEngine?.peekQueue().map((track, index) => (
-          <div key={index} onClick={() => changeSong(index)}>
-            <p>{index + 2}. {track.title}</p>
-          </div>
-        ))}
+        {shuffle ?
+          shuffledSongs.map((track, index) => (
+            <div key={index} onClick={() => changeSong(index)}>
+              <p>{index + 2}. {track.title}</p>
+            </div>))
+          : shuffleEngine?.peekQueue().map((track, index) => (
+            <div key={index} onClick={() => changeSong(index)}>
+              <p>{index + 2}. {track.title}</p>
+            </div>
+          ))}
       </div>
 
       <audio
