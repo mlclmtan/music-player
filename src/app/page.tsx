@@ -2,10 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Button, Slider, Input, Tooltip, Divider, List, Typography, Skeleton } from 'antd';
-import { FaBackward, FaForward, FaRegCirclePause, FaRegCirclePlay, FaShuffle } from "react-icons/fa6";
+import { Input, Tooltip, Divider } from 'antd';
 import { Player } from '@lottiefiles/react-lottie-player';
 import playingicon from "@/app/icons/lottieflow-multimedia-8-8-000000-easey.json";
+
+import { ShuffleEngine, SongCollection } from '@/app/types';
+import PlayerControls from '@/app/components/PlayerControls';
+import VolumeControl from '@/app/components/VolumeControl';
+import Playlist from '@/app/components/Playlist';
 
 const ALBUM_IMAGES = [
   'https://www.escapistmagazine.com/wp-content/uploads/2023/03/how-old-are-the-ive-members-1.jpg?fit=1200%2C762',
@@ -61,148 +65,18 @@ const TRACKS = [
   }
 ];
 
-interface ShuffleEngine {
-  setSongs(songs: Song[]): void;
-  getNextSong(currentSong: Song, tracks: Song[]): Song;
-  peekQueue(): Song[];
-  skipToSong?(songId: number): void;
-  getIsShuffleOn(): boolean;
-  setShuffleOn(): void;
-  setShuffleOff(): void;
-  resetQueue(songs: Song[]): void;
-  getOriginalOrderSongs(): Song[];
-  getShuffledSongs(): Song[];
-}
-
-interface Song {
-  url: string;
-  title: string;
-  tags: string[];
-}
-
-class SongCollection implements ShuffleEngine {
-  private songs: Song[] = [];
-  private peekMax: number = 5;
-  private isShuffleOn: boolean = false;
-  private originalOrderSongs: Song[] = [];
-
-  constructor(peekMax: number) {
-    this.peekMax = peekMax;
-  }
-
-  getOriginalOrderSongs(): Song[] {
-    return this.originalOrderSongs;
-  }
-
-  getShuffledSongs(): Song[] {
-    return this.songs;
-  }
-
-  setSongs(songs: Song[]): void {
-    if (!this.isShuffleOn && this.originalOrderSongs.length === 0) {
-      this.originalOrderSongs = songs.slice(1, songs.length);
-      if (this.originalOrderSongs.length < this.peekMax) {
-        while (this.originalOrderSongs.length < this.peekMax) {
-          this.originalOrderSongs = [...this.originalOrderSongs, ...songs];
-        }
-      }
-    } else if (this.isShuffleOn) {
-      while (this.songs.length < this.peekMax) {
-        this.songs = [...this.songs, ...this.getNewShuffledSongs(this.songs)];
-      }
-    }
-  }
-
-  getNextSong(): Song {
-    const nextSong = this.songs[0];
-    const remainingSongs = this.songs.slice(1);
-
-    if (this.peekMax < remainingSongs.length) {
-      this.songs = remainingSongs;
-      return nextSong;
-    }
-    const nonDuplicatedSongs = this.getNewShuffledSongs(remainingSongs)
-    this.songs = [...remainingSongs, ...nonDuplicatedSongs];
-
-    return nextSong;
-  }
-
-  setShuffleOn(): void {
-    this.isShuffleOn = true;
-  }
-
-  setShuffleOff(): void {
-    this.isShuffleOn = false;
-  }
-
-  getIsShuffleOn(): boolean {
-    return this.isShuffleOn;
-  }
-
-  peekQueue(): Song[] {
-    if (this.isShuffleOn) {
-      return this.songs.slice(0, this.peekMax);
-    } else {
-      return this.originalOrderSongs.slice(0, this.peekMax);
-    }
-  }
-
-  private getNewShuffledSongs(remainingSongs: Song[]): Song[] {
-    // newShuffledSongs should be shuffle of TRACKS, please ensure no two consecutive songs are the same, newShuffledSongs first element should not be the same as last element of remainingSongs
-    // return newShuffledSongs
-
-    const shuffled: Song[] = [];
-    const songsToShuffle = JSON.parse(JSON.stringify(TRACKS)); // Create a deep copy of the original TRACKS array
-    let lastSong;
-    let skippedSong;
-
-    if (remainingSongs.length > 0) {
-      lastSong = remainingSongs[remainingSongs.length - 1];
-    }
-
-    // Shuffle the songs until the last song in the remainingSongs array is not the same as the first song in the shuffled array
-    while (songsToShuffle.length > 0) {
-      const randomIndex = Math.floor(Math.random() * songsToShuffle.length);
-      let songToAdd = songsToShuffle[randomIndex];
-
-      if (lastSong && songToAdd.url !== lastSong.url) { // The first song of new queue cannot be currentTrack
-        shuffled.push(songToAdd);
-        lastSong = songToAdd;
-      } else {
-        skippedSong = songToAdd;
-      }
-      songsToShuffle.splice(randomIndex, 1); // Remove the selected song from the temporary array
-    }
-
-    if (skippedSong) {
-      shuffled.push(skippedSong);
-    }
-
-    return shuffled;
-  }
-
-  // reset queue to original order when shuffle is turned off. Find index of param "url" from TRACKS and set originalordersongs to the songs from that index+1 to the end of the array and the songs from 0 to index
-  resetQueue(updatedSongs: Song[]): void {
-    this.originalOrderSongs = updatedSongs;
-  }
-}
-
 const MusicPlayer = () => {
-  const [currentTrack, setCurrentTrack] = useState(TRACKS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(15);
-  const [shuffle, setShuffle] = useState(false);
   const [currentAlbumImage, setCurrentAlbumImage] = useState(FALLBACK_ALBUM_IMAGES[0]);
   const [currentAlbumImageIndex, setCurrentAlbumImageIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [initialMount, setInitialMount] = useState(true);
   const [shuffleEngine, setShuffleEngine] = useState<ShuffleEngine | null>(null);
-  const [originalOrderSongs, setOriginalOrderSongs] = useState<Song[]>([]);
-  const [shuffledSongs, setShuffledSongs] = useState<Song[]>([]);
-  const [peekMax, setPeekMax] = useState(5);
   const [isPeekPlaylistNumberLoading, setIsPeekPlaylistNumberLoading] = useState(true);
   const [peekMaxError, setPeekMaxError] = useState<string | null>(null);
+  const [isPlaylistLoading, setIsPlaylistLoading] = useState(true);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playingIconRef = useRef<Player | null>(null);
@@ -216,29 +90,21 @@ const MusicPlayer = () => {
   />
 
   useEffect(() => {
-    shuffleEngineInstance();
+    initShuffleEngineInstance();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [peekMax]); // Update shuffle engine when peekMax changes
+  }, []);
 
-  const shuffleEngineInstance = () => {
-    const shuffleEngineInstance = new SongCollection(peekMax);
-    shuffleEngineInstance.setSongs(JSON.parse(JSON.stringify(TRACKS)));
+  const initShuffleEngineInstance = (peekMax?: number | undefined) => {
+    const shuffleEngineInstance = new SongCollection(peekMax, JSON.parse(JSON.stringify(TRACKS)));
+    shuffleEngineInstance.setSongs();
     setShuffleEngine(shuffleEngineInstance);
 
-    if (!initialMount) setIsPeekPlaylistNumberLoading(false);
+    setIsPeekPlaylistNumberLoading(false);
+
+    return shuffleEngineInstance;
   }
 
   useEffect(() => {
-    const loadAlbumImage = () => {
-      const generateRandomIndex = () => Math.floor(Math.random() * ALBUM_IMAGES.length);
-      let randomIndex = generateRandomIndex();
-      while (ALBUM_IMAGES.length > 1 && !initialMount && randomIndex === currentAlbumImageIndex) {
-        randomIndex = generateRandomIndex();
-      }
-      setCurrentAlbumImage(ALBUM_IMAGES[randomIndex]);
-      setCurrentAlbumImageIndex(randomIndex);
-    };
-
     const playNextSong = () => {
       if (audioRef.current) {
         audioRef.current.load();
@@ -257,9 +123,21 @@ const MusicPlayer = () => {
       playNextSong();
     }
 
-    setInitialMount(false);
+    if (shuffleEngine?.getCurrentTrack().url) {
+      setInitialMount(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack.url]);
+  }, [shuffleEngine?.getCurrentTrack().url]);
+
+  const loadAlbumImage = () => {
+    const generateRandomIndex = () => Math.floor(Math.random() * ALBUM_IMAGES.length);
+    let randomIndex = generateRandomIndex();
+    while (ALBUM_IMAGES.length > 1 && !initialMount && randomIndex === currentAlbumImageIndex) {
+      randomIndex = generateRandomIndex();
+    }
+    setCurrentAlbumImage(ALBUM_IMAGES[randomIndex]);
+    setCurrentAlbumImageIndex(randomIndex);
+  }
 
 
   useEffect(() => {
@@ -281,24 +159,32 @@ const MusicPlayer = () => {
   const changeSong = (newIndex: number) => { } //! To be implemented
 
   const nextTrack = () => {
-    if (shuffle) {
-      setCurrentTrack(shuffleEngine?.getNextSong(currentTrack, TRACKS) || TRACKS[0]); //! FIX TRACKS[0]
-    } else {
-      const originalOrderSongsParam = originalOrderSongs.slice(1).concat(currentTrack);
-      if (originalOrderSongsParam) shuffleEngine?.resetQueue(originalOrderSongsParam);
-      setCurrentTrack(originalOrderSongs[0]);
+    if (shuffleEngine) {
+      if (shuffleEngine.getIsShuffleOn()) {
+        shuffleEngine.setCurrentTrack(shuffleEngine?.getNextSong());
+      } else {
+        shuffleEngine.setCurrentTrack(shuffleEngine?.getOriginalOrderSongs()[0]);
+        const originalOrderSongsParam = shuffleEngine?.getOriginalOrderSongs().slice(1).concat(shuffleEngine?.getCurrentTrack());
+        if (originalOrderSongsParam) shuffleEngine?.resetQueue(originalOrderSongsParam);
+    }
+
+      loadAlbumImage();
     }
   };
 
   const prevTrack = () => {
-    if (!shuffle) {
-      const originalOrderSongsParam = [
-        currentTrack,
-        ...originalOrderSongs.slice(0, originalOrderSongs.length - 1)
-      ];
-      if (originalOrderSongsParam) shuffleEngine?.resetQueue(originalOrderSongsParam);
-      setCurrentTrack(originalOrderSongs[originalOrderSongs.length - 1]);
-    } else { } //! Shuffled PrevTrack feat To be implemented
+    if (shuffleEngine) {
+      if (!shuffleEngine.getIsShuffleOn()) {
+        const originalOrderSongsParam = [
+          shuffleEngine.getCurrentTrack(),
+          ...shuffleEngine.getOriginalOrderSongs().slice(0, shuffleEngine?.getOriginalOrderSongs().length - 1)
+        ];
+        if (originalOrderSongsParam) shuffleEngine.resetQueue(originalOrderSongsParam);
+        shuffleEngine.setCurrentTrack(shuffleEngine.getOriginalOrderSongs()[shuffleEngine.getOriginalOrderSongs().length - 1]);
+      }
+
+      loadAlbumImage();
+    }
   }
 
   const handleVolumeChange = (value: number) => {
@@ -323,44 +209,48 @@ const MusicPlayer = () => {
     if (shuffleEngine) {
       if (shuffleEngine.getIsShuffleOn()) {
         shuffleEngine.setShuffleOff();
-        setShuffle(false);
       } else {
+        setIsPlaylistLoading(true);
         shuffleEngine.setShuffleOn();
-        setShuffle(true);
       }
     }
   }
 
   useEffect(() => { // When shuffle is toggled, update the queue
     if (shuffleEngine) {
-      shuffleEngine.setSongs(TRACKS);
-      setShuffledSongs(shuffleEngine.peekQueue());
+      shuffleEngine.shuffleSongs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getIsShuffleOn()]);
 
   useEffect(() => {
-    if (shuffleEngine && shuffleEngine.getIsShuffleOn()) {
-      setShuffledSongs(shuffleEngine.peekQueue());
-    }
     if (!initialMount && shuffleEngine?.getShuffledSongs().length) setIsPeekPlaylistNumberLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shuffleEngine?.getShuffledSongs()]);
-
-  useEffect(() => { // When non-shuffle queue is reset, update the queue
-    if (shuffleEngine) {
-      setOriginalOrderSongs(shuffleEngine.getOriginalOrderSongs());
+    if (shuffleEngine?.peekQueue().length) {
+      setTimeout(() => {
+        setIsPlaylistLoading(false);
+      }, 1000);
     }
-    if (!initialMount && shuffleEngine?.getOriginalOrderSongs().length) setIsPeekPlaylistNumberLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shuffleEngine?.getOriginalOrderSongs()]);
+  }, [shuffleEngine?.peekQueue()]);
 
   const handleSetPeekMax = (value: string) => {
     setIsPeekPlaylistNumberLoading(true);
     const newValue = parseInt(value, 10); // Parse input value to integer
     if (!isNaN(newValue) && newValue >= 1 && newValue <= 100) { // Check if input is a valid number between 1 and 100
-      setPeekMax(newValue);
-      shuffleEngineInstance();
+      const oldShuffleEngineInstanceProps = {
+        isShuffleOn: shuffleEngine?.getIsShuffleOn(),
+        songs: shuffleEngine?.getShuffledSongs(),
+        currentTrack: shuffleEngine?.getCurrentTrack(),
+      };
+      const newShuffleEngineInstance = initShuffleEngineInstance(newValue);
+      if (newShuffleEngineInstance) {
+        if (oldShuffleEngineInstanceProps.isShuffleOn) {
+          newShuffleEngineInstance.setShuffleOn();
+          newShuffleEngineInstance.shuffleSongs(oldShuffleEngineInstanceProps.songs);
+        }
+        if (oldShuffleEngineInstanceProps.currentTrack) newShuffleEngineInstance.setCurrentTrack(oldShuffleEngineInstanceProps.currentTrack);
+        setShuffleEngine(newShuffleEngineInstance);
+      }
       setPeekMaxError(null); // Clear error message when input is valid
     } else {
       setPeekMaxError('Please enter a number between 1 and 100.'); // Set error message when input is invalid
@@ -385,27 +275,20 @@ const MusicPlayer = () => {
         </div>
 
         <div className="musicInfo">
-          <p>{currentTrack.title}</p>
+          <p>{shuffleEngine?.getCurrentTrack().title}</p>
           <p>{formatTime(currentTime)} / {formatTime(duration)}</p>
         </div>
 
         <div className="controls">
-          <div className="control-buttons">
-            <Button disabled={shuffle} onClick={prevTrack} icon={<FaBackward />}><span className='button-text'>Previous</span></Button>
-            <Button onClick={playPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay />} type={isPlaying ? 'primary' : 'default'}><span className='button-text'>{isPlaying ? 'Pause' : 'Play'}</span></Button>
-            <Button onClick={nextTrack} icon={<FaForward />}><span className='button-text'>Next</span></Button>
-            <Button onClick={handleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'}><span className='button-text'>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</span></Button>
-          </div>
-          <div className="volume-container">
-            <p className="volume-text">Volume: {volume}</p>
-            <Slider
-              className="volume-slider"
-              value={volume}
-              onChange={handleVolumeChange}
-              min={0}
-              max={100}
-            />
-          </div>
+          <PlayerControls
+            isPlaying={isPlaying}
+            togglePlayPause={playPause}
+            playNext={nextTrack}
+            playPrev={prevTrack}
+            shuffle={shuffleEngine?.getIsShuffleOn()}
+            toggleShuffle={handleShuffle}
+          />
+          <VolumeControl volume={volume} setVolume={handleVolumeChange} />
           <Tooltip title={peekMaxError || 'Enter number of tracks to show in your playlist (between 1 to 100)'}>
             <Search
               type="number"
@@ -425,26 +308,20 @@ const MusicPlayer = () => {
       <Divider className='divider'></Divider>
 
       <div className="right-column">
-        <div className="playlist">
-          <Skeleton loading={isPeekPlaylistNumberLoading} active>
-            <List
-              header={<div>Playlist</div>}
-              bordered
-              dataSource={shuffle ? [currentTrack, ...shuffledSongs] : shuffleEngine ? [currentTrack, ...(shuffleEngine?.peekQueue())] : []}
-              renderItem={(item, index) => (
-                <List.Item key={item.url} onClick={() => changeSong(index)}>
-                  <Typography.Text className="playlist-item" mark={index === 0}>{index + 1}. {item.title}</Typography.Text>
-                  <Typography.Text>{index === 0 && playingIcon}</Typography.Text>
-                </List.Item>
-              )}
-            />
-          </Skeleton>
-        </div>
+        <Playlist
+          currentTrack={shuffleEngine?.getCurrentTrack()}
+          shuffledSongs={shuffleEngine?.peekQueue()}
+          shuffleEngine={shuffleEngine}
+          isPlaylistLoading={isPlaylistLoading}
+          playingIcon={playingIcon}
+          changeSong={changeSong}
+          shuffle={shuffleEngine?.getIsShuffleOn()}
+        />
       </div>
 
       <audio
         ref={audioRef}
-        src={currentTrack.url}
+        src={shuffleEngine?.getCurrentTrack().url}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleTimeUpdate}
         onEnded={nextTrack}
