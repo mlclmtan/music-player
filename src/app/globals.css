@@ -5,11 +5,10 @@ body {
   justify-content: center;
   align-items: center;
 
-  background-color: #85ffbd;
   background-size: 400% 400%;
-  background-image: linear-gradient(45deg, #85ffbd 0%, #fffb7d 100%);
+  background-image: linear-gradient(45deg, #85c4ff 0%, #ff7dba 100%);
 
-  animation: animate 3s linear infinite;
+  animation: animate 10s linear infinite;
 }
 @keyframes animate {
   0% {
@@ -74,8 +73,19 @@ body {
 }
 
 .control-buttons button {
+  display: flex;
+  align-items: center;
+
   flex: 1;
   margin: 0 5px;
+}
+
+.control-buttons span.button-text {
+  margin-left: 4px;
+}
+
+.ant-btn-icon {
+  margin-inline-end: 0 !important;
 }
 
 .volume-container {
@@ -119,7 +129,7 @@ body {
 .ant-list-item {
   display: flex;
   justify-content: flex-start !important;
-  cursor: pointer; 
+  cursor: pointer;
   margin-bottom: 5px;
 }
 
@@ -131,9 +141,6 @@ body {
     }
     span.button-text {
       display: none;
-    }
-    .ant-btn-icon {
-      margin-inline-end: 0 !important;
     }
   }
 }
@@ -159,9 +166,6 @@ body {
   .control-buttons button {
     span.button-text {
       display: none;
-    }
-    .ant-btn-icon {
-      margin-inline-end: 0 !important;
     }
   }
   .divider {
