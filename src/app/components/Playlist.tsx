@@ -14,6 +14,18 @@ interface PlaylistProps {
     shuffle?: boolean;
 }
 
+/**
+ * Playlist component for displaying the list of songs in the queue.
+ * @param {object} props - The props object containing playlist information.
+ * @param {Song} [props.currentTrack] - The currently playing song.
+ * @param {Song[]} [props.shuffledSongs=[]] - The array of shuffled songs.
+ * @param {ShuffleEngine | null} props.shuffleEngine - The shuffle engine instance.
+ * @param {boolean} props.isPlaylistLoading - Indicates if the playlist is loading.
+ * @param {JSX.Element} props.playingIcon - The icon indicating the currently playing song.
+ * @param {Function} props.changeSong - Function to change the current song.
+ * @param {boolean} [props.shuffle] - Indicates if shuffle mode is enabled.
+ * @returns {JSX.Element} - Playlist component.
+ */
 const Playlist: React.FC<PlaylistProps> = ({ currentTrack, shuffledSongs = [], shuffleEngine, isPlaylistLoading, playingIcon, changeSong, shuffle }) => {
     const playlistData = shuffle ? [currentTrack, ...shuffledSongs] : shuffleEngine ? [currentTrack, ...(shuffleEngine?.peekQueue() || [])] : []
 

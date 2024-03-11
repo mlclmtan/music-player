@@ -10,6 +10,14 @@ interface SeekbarProps {
     onSeek: (value: number) => void;
 }
 
+/**
+ * Seekbar component for displaying and seeking the playback progress.
+ * @param {object} props - The props object containing playback time and duration information.
+ * @param {number} props.currentTime - The current playback time in seconds.
+ * @param {number} props.duration - The total duration of the track in seconds.
+ * @param {Function} props.onSeek - Function to handle seeking to a specific playback time.
+ * @returns {JSX.Element} - Seekbar component.
+ */
 const Seekbar: React.FC<SeekbarProps> = ({ currentTime, duration, onSeek }) => {
     const handleSeek = (value: number) => {
         onSeek(value);

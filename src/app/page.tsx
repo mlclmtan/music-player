@@ -13,17 +13,26 @@ import VolumeControl from '@/app/components/VolumeControl';
 import Playlist from '@/app/components/Playlist';
 import Seekbar from '@/app/components/Seekbar';
 
+/**
+ * Constant array containing URLs of album images.
+ */
 const ALBUM_IMAGES = [
   'https://www.escapistmagazine.com/wp-content/uploads/2023/03/how-old-are-the-ive-members-1.jpg?fit=1200%2C762',
   'https://upload.wikimedia.org/wikipedia/commons/4/46/2023_MMA_IVE.jpg',
   'https://assets.teenvogue.com/photos/634db26f40ce7fba82300c09/master/w_1600%2Cc_limit/IVE3.png',
 ];
 
+/**
+ * Fallback array containing URLs of fallback album images.
+ */
 const FALLBACK_ALBUM_IMAGES = [
   '/ive_logo.png',
   '/Ive_-_I\'ve_Ive.png',
 ];
 
+/**
+ * Constant array containing details of music tracks.
+ */
 const TRACKS = [
   {
     url: "/IVE I AM.mp3",
@@ -67,7 +76,7 @@ const TRACKS = [
   }
 ];
 
-const MusicPlayer = () => {
+const MusicPlayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(15);
   const [currentAlbumImage, setCurrentAlbumImage] = useState(FALLBACK_ALBUM_IMAGES[0]);
@@ -84,27 +93,31 @@ const MusicPlayer = () => {
   const playingIconRef = useRef<Player | null>(null);
 
   const { Search } = Input;
-  const playingIcon = <Player
-    loop
-    ref={playingIconRef}
-    src={playingicon}
-    style={{ height: '1.25rem', marginLeft: '0.5rem' }}
-  />
+  const playingIcon = (
+    <Player
+      loop
+      ref={playingIconRef}
+      src={playingicon}
+      style={{ height: '1.25rem', marginLeft: '0.5rem' }}
+    />
+  );
 
   useEffect(() => {
     initShuffleEngineInstance();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Initializes the shuffle engine instance.
+   * @param peekMax The maximum number of tracks to peek in the playlist.
+   * @returns The initialized shuffle engine instance.
+   */
   const initShuffleEngineInstance = (peekMax?: number | undefined) => {
     const shuffleEngineInstance = new SongCollection(peekMax, JSON.parse(JSON.stringify(TRACKS)));
     shuffleEngineInstance.setSongs();
     setShuffleEngine(shuffleEngineInstance);
-
     setIsPeekPlaylistNumberLoading(false);
-
     return shuffleEngineInstance;
-  }
+  };
 
   useEffect(() => {
     const playNextSong = () => {
@@ -113,7 +126,7 @@ const MusicPlayer = () => {
         setIsPlaying(true);
         audioRef.current.play();
       }
-    }
+    };
 
     if (audioRef.current) {
       audioRef.current.volume = volume / 100;
@@ -128,9 +141,11 @@ const MusicPlayer = () => {
     if (shuffleEngine?.getCurrentTrack().url) {
       setInitialMount(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.getCurrentTrack().url]);
 
+  /**
+   * Loads a random album image.
+   */
   const loadAlbumImage = () => {
     const generateRandomIndex = () => Math.floor(Math.random() * ALBUM_IMAGES.length);
     let randomIndex = generateRandomIndex();
@@ -139,8 +154,7 @@ const MusicPlayer = () => {
     }
     setCurrentAlbumImage(ALBUM_IMAGES[randomIndex]);
     setCurrentAlbumImageIndex(randomIndex);
-  }
-
+  };
 
   useEffect(() => {
     if (audioRef.current) {
@@ -158,6 +172,10 @@ const MusicPlayer = () => {
     setIsPlaying(!isPlaying);
   };
 
+  /**
+   * Changes the current song.
+   * @param selectedIndex The index of the selected song.
+   */
   const changeSong = (selectedIndex: number) => {
     if (shuffleEngine) {
       if (!shuffleEngine.getIsShuffleOn()) {
@@ -166,7 +184,7 @@ const MusicPlayer = () => {
         shuffleEngine.changeCurrentTrackByShuffledSongsIndex(selectedIndex);
       }
     }
-  }
+  };
 
   const nextTrack = () => {
     if (shuffleEngine) {
@@ -195,8 +213,12 @@ const MusicPlayer = () => {
 
       loadAlbumImage();
     }
-  }
+  };
 
+  /**
+   * Handles volume change.
+   * @param value The new volume value.
+   */
   const handleVolumeChange = (value: number) => {
     setVolume(value);
     if (audioRef.current) {
@@ -220,7 +242,7 @@ const MusicPlayer = () => {
         shuffleEngine.shuffleSongs();
       }
     }
-  }
+  };
 
   useEffect(() => {
     if (!initialMount && shuffleEngine?.getShuffledSongs().length) setIsPeekPlaylistNumberLoading(false);
@@ -229,9 +251,12 @@ const MusicPlayer = () => {
         setIsPlaylistLoading(false);
       }, 1000);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shuffleEngine?.peekQueue()]);
 
+  /**
+   * Sets the maximum number of tracks to peek in the playlist.
+   * @param value The input value representing the maximum number of tracks.
+   */
   const handleSetPeekMax = (value: string) => {
     setIsPeekPlaylistNumberLoading(true);
     const newValue = parseInt(value, 10); // Parse input value to integer
@@ -257,6 +282,10 @@ const MusicPlayer = () => {
     }
   };
 
+  /**
+   * Handles seek action.
+   * @param value The new seek value.
+   */
   const handleSeek = (value: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = value;

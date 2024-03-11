@@ -29,42 +29,79 @@ export class SongCollection implements ShuffleEngine {
   private tracks: Song[] = [];
   private currentTrack: Song;
 
+  /**
+   * Constructs a new SongCollection.
+   * @param peekMax The maximum number of songs to peek.
+   * @param tracks The array of songs.
+   */
   constructor(peekMax: number | undefined, tracks: Song[]) {
     this.peekMax = peekMax ? peekMax : this.peekMax;
     this.tracks = tracks;
     this.currentTrack = this.tracks[0];
   }
 
+  /**
+   * Sets the maximum number of songs to peek in the playlist.
+   * @param peekMax The maximum number of songs to peek.
+   */
   setPeekMax(peekMax: number): void {
     this.peekMax = peekMax;
   }
 
+  /**
+   * Gets the maximum number of songs to peek in the playlist.
+   * @returns The maximum number of songs to peek.
+   */
   getPeekMax(): number {
     return this.peekMax;
   }
 
+  /**
+   * Sets the current track.
+   * @param currentTrack The current track to set.
+   */
   setCurrentTrack(currentTrack: Song): void {
     this.currentTrack = currentTrack;
   }
 
+  /**
+   * Gets the current track.
+   * @returns The current track.
+   */
   getCurrentTrack(): Song {
     return this.currentTrack;
   }
 
+  /**
+   * Sets the original order songs.
+   * @param songs The original order songs to set.
+   */
   setOriginalOrderSongs(songs: Song[]): void {
     if (songs) {
       this.originalOrderSongs = songs;
     }
   }
 
+  /**
+   * Gets the original order songs.
+   * @returns The original order songs.
+   */
   getOriginalOrderSongs(): Song[] {
     return this.originalOrderSongs;
   }
 
+  /**
+   * Gets the shuffled songs.
+   * @returns The shuffled songs.
+   */
   getShuffledSongs(): Song[] {
     return this.songs;
   }
 
+  /**
+   * Sets the songs for the shuffle engine.
+   * @param songs The array of songs to set.
+   */
   setSongs(songs?: Song[]): void {
     if (!this.isShuffleOn && this.originalOrderSongs.length === 0) {
       this.originalOrderSongs = this.tracks.slice(1, this.tracks.length);
@@ -78,6 +115,10 @@ export class SongCollection implements ShuffleEngine {
     }
   }
 
+  /**
+   * Changes the current track based on the index of original order songs.
+   * @param index The index of the original order songs.
+   */
   changeCurrentTrackByOriginalOrderSongsIndex = (index: number): void => { // After changing the current track, add the remaining tracks from this.track from the index+1 to the end of the array and the songs from 0 to index
     const oldCurrentTrack = this.currentTrack;
     const remainingSongs = this.originalOrderSongs.slice(index);
@@ -88,6 +129,10 @@ export class SongCollection implements ShuffleEngine {
     this.originalOrderSongs = songs;
   }
 
+  /**
+   * Changes the current track based on the index of shuffled songs.
+   * @param index The index of the shuffled songs.
+   */
   changeCurrentTrackByShuffledSongsIndex = (index: number): void => { // Remove all elements from index 0 till the index-1 from this.songs and add new shuffled songs to this.songs while this new array length < this.peekMax
     const oldCurrentTrack = this.currentTrack;
     const remainingSongs = this.songs.slice(index);
@@ -98,7 +143,10 @@ export class SongCollection implements ShuffleEngine {
     this.songs = songs;
   }
 
-  // Shuffle this.tracks. If the shuffled array has less than peekMax number of songs, shuffle the tracks again and add the new songs to the shuffled array. Return the first song from the shuffled array.
+  /**
+   * Shuffles the songs in the collection.
+   * @param remainingSongs Optional array of remaining songs to shuffle.
+   */
   shuffleSongs(remainingSongs: Song[] = []): void {
     if (this.isShuffleOn) {
       let shuffledSongs: Song[] = remainingSongs;
@@ -111,6 +159,10 @@ export class SongCollection implements ShuffleEngine {
     }
   }
 
+  /**
+   * Gets the next song in the shuffled queue.
+   * @returns The next song.
+   */
   getNextSong(): Song {
     const nextSong = this.songs[0];
     const remainingSongs = this.songs.slice(1);
@@ -138,6 +190,10 @@ export class SongCollection implements ShuffleEngine {
     return this.isShuffleOn;
   }
 
+  /**
+   * Peeks at the queue of songs, either shuffled or in original order.
+   * @returns An array of songs representing the peeked queue.
+   */
   peekQueue(): Song[] {
     if (this.isShuffleOn) {
       return this.songs.slice(0, this.peekMax);
@@ -146,9 +202,14 @@ export class SongCollection implements ShuffleEngine {
     }
   }
 
+  /**
+   * Generates a new shuffled array of songs.
+   * Ensures no two consecutive songs are the same, and the first element of the new shuffled array
+   * is not the same as the last element of the remainingSongs array.
+   * @param firstSongToAvoid The first song to avoid duplication with in the new shuffled array.
+   * @returns The new shuffled array of songs.
+   */
   private getNewShuffledSongs(firstSongToAvoid: Song): Song[] {
-    // newShuffledSongs should be shuffle of TRACKS, please ensure no two consecutive songs are the same, newShuffledSongs first element should not be the same as last element of remainingSongs
-    // return newShuffledSongs
 
     const shuffled: Song[] = [];
     const songsToShuffle = JSON.parse(JSON.stringify(this.tracks)); // Create a deep copy of the original TRACKS array
@@ -178,7 +239,11 @@ export class SongCollection implements ShuffleEngine {
     return shuffled;
   }
 
-  // reset queue to original order when shuffle is turned off. Find index of param "url" from TRACKS and set originalordersongs to the songs from that index+1 to the end of the array and the songs from 0 to index
+  /**
+   * Resets the queue to the original order when shuffle is turned off.
+   * Finds the index of the song URL in TRACKS and sets original order songs accordingly.
+   * @param updatedSongs The updated array of songs.
+   */
   resetQueue(updatedSongs: Song[]): void {
     if (this.isShuffleOn) {
       this.songs = updatedSongs;

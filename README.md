@@ -1,15 +1,25 @@
 # TODO
 
-1. Document
-2. Prev track button for shuffle monde
+1. REDUX
+2. Prev track button for shuffle mode
 3. Load all TRACK duration from mp3
-4. Work on category tag
-5. Work on Loop
-6. Implement select song onclick (skipToSong method)
-7. Progress bar (seeker)
-8. redux?
-9. Add lyrics
-10. integrate soundcloud/youtube stream (utilise BFF, SSC)
+4. Add Loop feat
+5. Add category feat
+6. [Add list animation](https://motion.ant.design/api/queue-anim)
+7.  Integrate soundcloud/youtube stream (utilise BFF, SSC)
+8.  Add lyrics
+9.  SSR main UI
+10. Refactor CSS
+
+# BUG
+
+1. After clicking next song, playing icon not animating
+2. Dev mode: clicking next too fast, got error play() was interrupted by new load request
+3. Song ended not auto to next song? fixed
+
+# Corner Case
+
+1. When switching from shuffle on to off, current playing song might duplicate with previous state of original sequence playlist.
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 

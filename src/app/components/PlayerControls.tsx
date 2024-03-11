@@ -12,6 +12,17 @@ interface PlayerControlsProps {
     toggleShuffle: () => void;
 }
 
+/**
+ * PlayerControls component for controlling playback and shuffle functionality.
+ * @param {object} props - The props object containing control functions and states.
+ * @param {boolean} props.isPlaying - Indicates whether the player is currently playing.
+ * @param {Function} props.togglePlayPause - Function to toggle play/pause state.
+ * @param {Function} props.playNext - Function to play the next track.
+ * @param {Function} props.playPrev - Function to play the previous track.
+ * @param {boolean} [props.shuffle] - Indicates whether shuffle mode is enabled.
+ * @param {Function} props.toggleShuffle - Function to toggle shuffle mode.
+ * @returns {JSX.Element} - PlayerControls component.
+ */
 const PlayerControls: React.FC<PlayerControlsProps> = ({ isPlaying, togglePlayPause, playNext, playPrev, shuffle, toggleShuffle }) => {
     return (
         <div className="control-buttons">
