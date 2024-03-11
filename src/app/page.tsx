@@ -156,16 +156,24 @@ const MusicPlayer = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const changeSong = (newIndex: number) => { } //! To be implemented
+  const changeSong = (selectedIndex: number) => {
+    if (shuffleEngine) {
+      if (!shuffleEngine.getIsShuffleOn()) {
+        shuffleEngine.changeCurrentTrackByOriginalOrderSongsIndex(selectedIndex);
+      } else {
+        shuffleEngine.changeCurrentTrackByShuffledSongsIndex(selectedIndex);
+      }
+    }
+  }
 
   const nextTrack = () => {
     if (shuffleEngine) {
       if (shuffleEngine.getIsShuffleOn()) {
         shuffleEngine.setCurrentTrack(shuffleEngine?.getNextSong());
       } else {
-        shuffleEngine.setCurrentTrack(shuffleEngine?.getOriginalOrderSongs()[0]);
-        const originalOrderSongsParam = shuffleEngine?.getOriginalOrderSongs().slice(1).concat(shuffleEngine?.getCurrentTrack());
-        if (originalOrderSongsParam) shuffleEngine?.resetQueue(originalOrderSongsParam);
+        const originalOrderSongsParam = [...shuffleEngine.getOriginalOrderSongs().slice(1), shuffleEngine.getCurrentTrack()];
+        shuffleEngine.setCurrentTrack(shuffleEngine.getOriginalOrderSongs()[0]);
+        if (originalOrderSongsParam) shuffleEngine.resetQueue(originalOrderSongsParam);
     }
 
       loadAlbumImage();
@@ -209,19 +217,14 @@ const MusicPlayer = () => {
     if (shuffleEngine) {
       if (shuffleEngine.getIsShuffleOn()) {
         shuffleEngine.setShuffleOff();
+        if (!isPlaying) playPause();
       } else {
         setIsPlaylistLoading(true);
         shuffleEngine.setShuffleOn();
+        shuffleEngine.shuffleSongs();
       }
     }
   }
-
-  useEffect(() => { // When shuffle is toggled, update the queue
-    if (shuffleEngine) {
-      shuffleEngine.shuffleSongs();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shuffleEngine?.getIsShuffleOn()]);
 
   useEffect(() => {
     if (!initialMount && shuffleEngine?.getShuffledSongs().length) setIsPeekPlaylistNumberLoading(false);

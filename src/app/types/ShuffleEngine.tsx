@@ -17,6 +17,8 @@ export interface ShuffleEngine {
   setCurrentTrack(currentTrack: Song): void;
   getCurrentTrack(): Song;
   shuffleSongs(remainingSongs?: Song[]): void;
+  changeCurrentTrackByOriginalOrderSongsIndex(index: number): void;
+  changeCurrentTrackByShuffledSongsIndex(index: number): void;
 }
 
 export class SongCollection implements ShuffleEngine {
@@ -66,16 +68,34 @@ export class SongCollection implements ShuffleEngine {
   setSongs(songs?: Song[]): void {
     if (!this.isShuffleOn && this.originalOrderSongs.length === 0) {
       this.originalOrderSongs = this.tracks.slice(1, this.tracks.length);
-      if (this.originalOrderSongs.length < this.peekMax) {
-        while (this.originalOrderSongs.length < this.peekMax) {
-          this.originalOrderSongs = [...this.originalOrderSongs, ...this.tracks];
-        }
+      while (this.originalOrderSongs.length < this.peekMax) {
+        this.originalOrderSongs = [...this.originalOrderSongs, ...this.tracks];
       }
     } else if (this.isShuffleOn) {
       if (songs) {
         this.songs = songs;
       }
     }
+  }
+
+  changeCurrentTrackByOriginalOrderSongsIndex = (index: number): void => { // After changing the current track, add the remaining tracks from this.track from the index+1 to the end of the array and the songs from 0 to index
+    const oldCurrentTrack = this.currentTrack;
+    const remainingSongs = this.originalOrderSongs.slice(index);
+    const newTrack = this.originalOrderSongs[index - 1];
+    let songs = [...remainingSongs, oldCurrentTrack, ...this.originalOrderSongs.slice(0, index - 1)];
+    this.currentTrack = newTrack;
+
+    this.originalOrderSongs = songs;
+  }
+
+  changeCurrentTrackByShuffledSongsIndex = (index: number): void => { // Remove all elements from index 0 till the index-1 from this.songs and add new shuffled songs to this.songs while this new array length < this.peekMax
+    const oldCurrentTrack = this.currentTrack;
+    const remainingSongs = this.songs.slice(index);
+    const newTrack = this.songs[index - 1];
+    let songs = [...remainingSongs, oldCurrentTrack, ...this.songs.slice(0, index - 1)];
+    this.currentTrack = newTrack;
+
+    this.songs = songs;
   }
 
   // Shuffle this.tracks. If the shuffled array has less than peekMax number of songs, shuffle the tracks again and add the new songs to the shuffled array. Return the first song from the shuffled array.

@@ -129,8 +129,19 @@ body {
 .ant-list-item {
   display: flex;
   justify-content: flex-start !important;
-  cursor: pointer;
   margin-bottom: 5px;
+}
+
+.ant-list-item:nth-child(n+2) {
+  cursor: pointer;
+}
+
+.ant-list-item:hover {
+  background-color: #ffffff45;
+}
+
+.ant-list-item:nth-child(n+2):hover .playlist-item {
+  color: #1890ff;
 }
 
 @media (max-width: 555px) {
