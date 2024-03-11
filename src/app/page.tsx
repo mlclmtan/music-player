@@ -176,7 +176,7 @@ const MusicPlayer = () => {
         const originalOrderSongsParam = [...shuffleEngine.getOriginalOrderSongs().slice(1), shuffleEngine.getCurrentTrack()];
         shuffleEngine.setCurrentTrack(shuffleEngine.getOriginalOrderSongs()[0]);
         if (originalOrderSongsParam) shuffleEngine.resetQueue(originalOrderSongsParam);
-    }
+      }
 
       loadAlbumImage();
     }
@@ -259,10 +259,10 @@ const MusicPlayer = () => {
 
   const handleSeek = (value: number) => {
     if (audioRef.current) {
-        audioRef.current.currentTime = value;
-        setCurrentTime(value);
+      audioRef.current.currentTime = value;
+      setCurrentTime(value);
     }
-};
+  };
 
   return (
     <div className="container">
