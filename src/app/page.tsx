@@ -7,9 +7,11 @@ import { Player } from '@lottiefiles/react-lottie-player';
 import playingicon from "@/app/icons/lottieflow-multimedia-8-8-000000-easey.json";
 
 import { ShuffleEngine, SongCollection } from '@/app/types';
+import { formatTime } from './utils';
 import PlayerControls from '@/app/components/PlayerControls';
 import VolumeControl from '@/app/components/VolumeControl';
 import Playlist from '@/app/components/Playlist';
+import Seekbar from '@/app/components/Seekbar';
 
 const ALBUM_IMAGES = [
   'https://www.escapistmagazine.com/wp-content/uploads/2023/03/how-old-are-the-ive-members-1.jpg?fit=1200%2C762',
@@ -207,12 +209,6 @@ const MusicPlayer = () => {
     setDuration(audioRef.current?.duration || 0);
   };
 
-  const formatTime = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
   const handleShuffle = () => {
     if (shuffleEngine) {
       if (shuffleEngine.getIsShuffleOn()) {
@@ -261,6 +257,13 @@ const MusicPlayer = () => {
     }
   };
 
+  const handleSeek = (value: number) => {
+    if (audioRef.current) {
+        audioRef.current.currentTime = value;
+        setCurrentTime(value);
+    }
+};
+
   return (
     <div className="container">
       <div className="left-column">
@@ -290,6 +293,11 @@ const MusicPlayer = () => {
             playPrev={prevTrack}
             shuffle={shuffleEngine?.getIsShuffleOn()}
             toggleShuffle={handleShuffle}
+          />
+          <Seekbar
+            currentTime={currentTime}
+            duration={duration}
+            onSeek={handleSeek}
           />
           <VolumeControl volume={volume} setVolume={handleVolumeChange} />
           <Tooltip title={peekMaxError || 'Enter number of tracks to show in your playlist (between 1 to 100)'}>

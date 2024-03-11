@@ -88,17 +88,21 @@ body {
   margin-inline-end: 0 !important;
 }
 
-.volume-container {
+.volume-container, .seekbar-container {
   display: flex;
   align-items: center;
   width: 100%;
+}
+
+.seekbar-container {
+  margin-top: 10px;
 }
 
 .volume-text {
   margin-right: 10px;
 }
 
-.volume-slider {
+.volume-slider, .seekbar-slider {
   flex: 1;
 }
 
