@@ -1,4 +1,6 @@
-# High-Level Architecture: [Demo Link](https://music-player.malcolmtan.click/)
+# [Music Player Demo](https://music-player.malcolmtan.click/) ![Vercel](https://vercelbadge.vercel.app/api/mlclmtan/music-player)
+
+## High-Level Architecture: 
 The React application is a music player that allows users to play songs, control playback, adjust volume, and view a playlist. The application includes the following components:
 
 1. **MusicPlayer**: This component serves as the main interface for the music player. It integrates various sub-components and manages the playback logic, including loading songs, controlling playback, and handling shuffle functionality.
@@ -10,10 +12,10 @@ The React application is a music player that allows users to play songs, control
 <img src="https://github.com/mlclmtan/music-player/assets/52649203/9dd27e98-b828-4301-a9aa-d473296e3914" height="1000">
 <img src="https://github.com/mlclmtan/music-player/assets/52649203/a0d2f266-5a4f-405e-a075-d488352ca7ec" height="400">
 
-## Introduction:
+### Introduction:
 To provide users with a seamless music listening experience. It features a responsive user interface with intuitive controls for playing songs, adjusting volume, and navigating playlists. The application incorporates a ShuffleEngine interface to ensure that songs are played in shuffled loops, enhancing the listening experience by preventing repetition of the same sequence of songs.
 
-## Additional Functions for Improved User Experience:
+### Additional Functions for Improved User Experience:
 1. **Shuffle Mode**: Users can toggle shuffle mode on or off to randomize the order of songs in the playlist, adding variety to their listening experience.
 
 2. **Volume Control**: The application includes a volume control slider, allowing users to adjust the volume according to their preferences.
@@ -22,12 +24,15 @@ To provide users with a seamless music listening experience. It features a respo
 
 4. **Playlist Length**: Users can set the maximum number of tracks to display in the playlist, enabling them to customize their listening queue.
 
-## Documentation:
+#### Desktop-First Design Pattern:
+- Follows desktop-first design pattern, prioritizing the layout and styling for desktop screens before adapting to smaller screens, ensures users accessing from desktop devices have an optimized viewing experience.
+
+### Documentation:
 - Well-documented with comments explaining the functionality of each component and method
 - Includes details on the interface of the ShuffleEngine, the purpose of each component, and instructions for developers to understand and maintain the codebase effectively
 - Code adheres to best practices and follows a modular structure for easy scalability and maintainability
 
-## TODO
+### TODO
 1. REDUX
 2. Prev track button for shuffle mode
 3. Load all TRACK duration from mp3
@@ -44,7 +49,7 @@ To provide users with a seamless music listening experience. It features a respo
 2. Dev mode: clicking next too fast, got error play() was interrupted by new load request
 3. Song ended not auto to next song? fixed
 
-## Corner Case
+### Corner Case
 1. **Duplicate Song**: When switching from shuffle on to off, current playing song might duplicate with previous state of original sequence playlist.
 2. **Empty Playlist**: Checks for an empty playlist and handles it gracefully to prevent errors when attempting to play songs or display the playlist.
 3. **Handling of Shuffle Mode**: The code correctly manages the state of shuffle mode, toggling it on and off as per user input. It ensures that the shuffle mode is correctly reflected in the playback order and that songs are shuffled in a random order.
