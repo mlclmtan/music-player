@@ -26,7 +26,7 @@ const ALBUM_IMAGES = [
  * Fallback array containing URLs of fallback album images.
  */
 const FALLBACK_ALBUM_IMAGES = [
-  '/ive_logo.png',
+  '/Ive_logo.png',
   '/Ive_-_I\'ve_Ive.png',
 ];
 
@@ -147,12 +147,12 @@ const MusicPlayer: React.FC = () => {
    * Loads a random album image.
    */
   const loadAlbumImage = () => {
-    const generateRandomIndex = () => Math.floor(Math.random() * ALBUM_IMAGES.length);
+    const generateRandomIndex = () => Math.floor(Math.random() * FALLBACK_ALBUM_IMAGES.length);
     let randomIndex = generateRandomIndex();
-    while (ALBUM_IMAGES.length > 1 && !initialMount && randomIndex === currentAlbumImageIndex) {
+    while (FALLBACK_ALBUM_IMAGES.length > 1 && !initialMount && randomIndex === currentAlbumImageIndex) {
       randomIndex = generateRandomIndex();
     }
-    setCurrentAlbumImage(ALBUM_IMAGES[randomIndex]);
+    setCurrentAlbumImage(FALLBACK_ALBUM_IMAGES[randomIndex]);
     setCurrentAlbumImageIndex(randomIndex);
   };
 
