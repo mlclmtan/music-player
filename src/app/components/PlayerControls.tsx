@@ -26,10 +26,10 @@ interface PlayerControlsProps {
 const PlayerControls: React.FC<PlayerControlsProps> = ({ isPlaying, togglePlayPause, playNext, playPrev, shuffle, toggleShuffle }) => {
     return (
         <div className="control-buttons">
-            <Button disabled={shuffle} onClick={playPrev} icon={<FaBackward />}><span className='button-text'>Previous</span></Button>
-            <Button onClick={togglePlayPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay />} type={isPlaying ? 'primary' : 'default'}><span className='button-text'>{isPlaying ? 'Pause' : 'Play'}</span></Button>
-            <Button onClick={playNext} icon={<FaForward />}><span className='button-text'>Next</span></Button>
-            <Button onClick={toggleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'}><span className='button-text'>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</span></Button>
+            <Button disabled={shuffle} onClick={playPrev} icon={<FaBackward />} size='large'><span className='button-text'>Previous</span></Button>
+            <Button onClick={togglePlayPause} icon={isPlaying ? <FaRegCirclePause /> : <FaRegCirclePlay />} type={isPlaying ? 'primary' : 'default'} size='large'><span className='button-text'>{isPlaying ? 'Pause' : 'Play'}</span></Button>
+            <Button onClick={playNext} icon={<FaForward />} size='large'><span className='button-text'>Next</span></Button>
+            <Button onClick={toggleShuffle} icon={<FaShuffle />} type={shuffle ? 'primary' : 'default'} size='large'><span className='button-text'>{shuffle ? 'Shuffle On' : 'Shuffle Off'}</span></Button>
         </div>
     );
 };

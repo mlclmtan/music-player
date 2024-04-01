@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Input, Tooltip, Divider } from 'antd';
+import { Input, Tooltip, Divider, Grid } from 'antd';
 import { Player } from '@lottiefiles/react-lottie-player';
 import playingicon from "@/app/icons/lottieflow-multimedia-8-8-000000-easey.json";
 
@@ -92,13 +92,14 @@ const MusicPlayer: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playingIconRef = useRef<Player | null>(null);
 
+  const { useBreakpoint } = Grid;
   const { Search } = Input;
   const playingIcon = (
     <Player
       loop
       ref={playingIconRef}
       src={playingicon}
-      style={{ height: '1.25rem', marginLeft: '0.5rem' }}
+      className='playing-icon'
     />
   );
 
@@ -311,7 +312,7 @@ const MusicPlayer: React.FC = () => {
 
         <div className="musicInfo">
           <p>{shuffleEngine?.getCurrentTrack().title}</p>
-          <p>{formatTime(currentTime)} / {formatTime(duration)}</p>
+          {!!useBreakpoint().md && <p>{formatTime(currentTime)} / {formatTime(duration)}</p>}
         </div>
 
         <div className="controls">

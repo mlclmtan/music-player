@@ -47,7 +47,7 @@ const Playlist: React.FC<PlaylistProps> = ({ currentTrack, shuffledSongs = [], s
                         if (item) {
                             return <List.Item key={item.url} onClick={() => changeSong(index)} className={activeIndex === index ? 'active-item' : ''}>
                                 <Typography.Text className="playlist-item" strong={index === 0}>{index + 1}. {item.title}</Typography.Text>
-                                <Typography.Text>{index === 0 && playingIcon}</Typography.Text>
+                                {index === 0 && playingIcon}
                             </List.Item>
                         }
                     }

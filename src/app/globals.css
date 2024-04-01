@@ -1,7 +1,8 @@
 /* Desktop first design pattern */
 
 body {
-  min-height: 100vh;
+  min-width: 365px;
+  height: 100vh;
   margin: 0;
   display: flex;
   justify-content: center;
@@ -52,6 +53,7 @@ body {
   display: flex;
   flex-direction: column;
   width: 50%;
+  height: 100%;
 }
 
 .albumImage {
@@ -70,6 +72,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .control-buttons {
@@ -80,6 +83,7 @@ body {
 
 .control-buttons button {
   display: flex;
+  justify-content: center;
   align-items: center;
 
   flex: 1;
@@ -140,6 +144,10 @@ body {
   padding-left: 20px;
 }
 
+.playlist > .ant-list {
+  height: 100%;
+}
+
 .ant-list-item {
   display: flex;
   justify-content: flex-start !important;
@@ -156,6 +164,11 @@ body {
 
 .ant-list-item:nth-child(n + 2):hover .playlist-item {
   color: #1890ff;
+}
+
+.playlist .ant-list-items {
+  overflow-y: auto;
+  height: 100%;
 }
 
 /* Playlist item active song background animation */
@@ -179,6 +192,17 @@ body {
 
 .divider {
   display: none !important;
+  margin: 12px 0;
+}
+
+/* .playlist-playing-icon {
+} */
+
+.lf-player-container {
+  width: 32px;
+  margin-left: 0.5rem;
+}
+.playing-icon {
 }
 
 /**
@@ -198,6 +222,7 @@ body {
     min-width: -webkit-fill-available;
     flex-direction: column;
     align-items: center;
+    height: calc(100% - (32px * 2)); /* 32px is the margin */
   }
 
   .left-column,
@@ -205,8 +230,25 @@ body {
     width: 100%;
   }
 
+  .right-column {
+    overflow-y: hidden;
+  }
+
   .playlist {
-    margin-top: 16px;
+    overflow-y: hidden;
+    padding-left: initial;
+  }
+
+  .playlist > .ant-list {
+    overflow-y: hidden;
+  }
+
+  .playlist > .ant-list > div:nth-child(2) {
+    height: 100%;
+  }
+
+  .ant-spin-container {
+    height: 100%;
   }
 
   .divider {
@@ -233,3 +275,4 @@ body {
     display: none !important;
   }
 }
+
